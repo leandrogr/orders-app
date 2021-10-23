@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import type { GetServerSideProps, NextPage } from 'next'
-import Router from 'next/router';
+import router, { useRouter } from 'next/router';
 import React, { useMemo, useEffect, useState } from 'react'
 import Link from 'next/link';
 
@@ -8,15 +8,16 @@ import api from '../services/api'
 import { getPayload, isTokenExpired } from '../services/auth';
 import { parseCookies } from '../services/cookies';
 import  Table from '../components/Table';
-import link from 'next/link';
 
 interface PrivatePageProps {
   payload: any;
 }
 
-const Orders: NextPage<PrivatePageProps> = (props) => {
+const OrderHistory: NextPage<PrivatePageProps> = (props) => {
 
-  console.log(props.email);
+  const router = useRouter()
+  const {order_id} = router.query
+  console.log(order_id);
 
   const [data, setData] = useState([]);
 
@@ -43,12 +44,6 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
           {
             Header: "Valor",
             accessor: "value"
-          },
-          {
-            Header: "Histórico",
-            Cell: (data) => (
-              <button type="button" onClick={() => Router.push({pathname: '/orders-history', query: {order_id: data.row.original.order_id}})} className="px-6 py-2 mt-4 text-white bg-green-400 rounded-lg hover:bg-green-600">Vizualizar</button>
-            )
           }
         ]
       }
@@ -57,6 +52,7 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
   );
 
   const Status = ({ value }) => {
+
 
     return (
       <div>
@@ -86,7 +82,7 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
   };
 
   const  getOrders = async () => {
-    const result = await api.get("orders")
+    const result = await api.get("orders/" + order_id)
     setData(result.data);
   }
 
@@ -96,7 +92,7 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
 
   function setLogout() {
     Cookies.remove('token');
-    Router.push('/');
+    router.push('/');
   }
 
   return (
@@ -135,12 +131,9 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
                 </div>
             </div>
         </nav>
-        {/* <div className="max-w-6xl mx-auto px-4">
-        <a href="" className="py-2 px-2 font-medium text-white bg-green-500 rounded hover:bg-green-400 transition duration-300">Add +</a>
-        </div> */}
         
         <div className="max-w-6xl mx-auto px-4 mt-10">
-        <Link href="/order-register" ><span className="py-2 px-2 font-medium text-white bg-green-500 rounded hover:bg-green-400 transition duration-300">Adicionar Pedido</span></Link>
+        <Link href="/orders" ><span className="py-2 px-2 font-medium text-white bg-green-500 rounded hover:bg-green-400 transition duration-300">Pedidos</span></Link>
         <div className="flex flex-col mt-8">
             <div className="py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
                 <div className="inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg">
@@ -154,7 +147,7 @@ const Orders: NextPage<PrivatePageProps> = (props) => {
     )
 }
 
-export default Orders
+export default OrderHistory
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
